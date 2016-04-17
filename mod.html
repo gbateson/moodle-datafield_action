@@ -38,26 +38,26 @@
     $text  = $this->format_edit_textfield($name, $value, 'field'.$name);
     echo $this->format_table_row($name, $label, $text);
 
-    $name  = $this->subparam; // param10
-    $label = get_string('type', 'data');
-    $options = $this->get_datafield_types();
-    $default = '';
-    $text  = $this->format_edit_selectfield($name, $options, $default);
+    $name  = 'actiontype';
+    $param = $this->typeparam;
+    $value = $this->field->$param;
+    $label = get_string($name, 'datafield_action');
+    $text  = $this->format_edit_selectfield($param, $this->get_action_types(), $value);
     echo $this->format_table_row($name, $label, $text);
 
-    $name = $this->accessparam; // param9
-    $label = get_string('access', 'access');
-    $options = $this->get_access_types();
-    $default = data_field_action::ACCESS_VIEW;
-    $text  = $this->format_edit_selectfield($name, $options, $default);
+    $name  = 'actiontime';
+    $param = $this->timeparam;
+    $value = $this->field->$param;
+    $label = get_string($name, 'datafield_action');
+    $text  = $this->format_edit_selectfield($param, $this->get_action_times(), $value);
     echo $this->format_table_row($name, $label, $text);
 
-    $name = $this->disabledifparam; // param8
-    $value = $this->field->$name;
-    $label = get_string('disabledif', 'datafield_action');
-    $text = $this->format_edit_textarea($name, $value, 'disabledif');
-    echo $this->format_table_row($name, $label, $text);
-
-    $this->display_edit_subfield();
-
+    $name  = 'argument';
+    for ($i=1; $i<=3; $i++) {
+        $param = 'param'.($i + 2);
+        $value = $this->field->$param;
+        $label = get_string($name, 'datafield_action', $i);
+        $text = $this->format_edit_textarea($param, $value, 'argument', 2);
+        echo $this->format_table_row($name, $label, $text);
+    }
 ?></table>

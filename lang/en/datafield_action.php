@@ -29,10 +29,18 @@
 $string['pluginname'] = 'Action field';
 
 /** more string */
-$string['accessnone'] = 'Hidden from non-managers';
-$string['accessview'] = 'Viewable by non-managers';
-$string['accessedit'] = 'Editable by non-managers';
-$string['disabledif'] = 'Conditions for disabling this field';
+$string['actiontime'] = 'Action time';
+$string['actiontype'] = 'Action type';
+$string['argument'] = 'Argument {$a}';
+$string['timeadd'] = 'When a record is added';
+$string['timeaddedit'] = 'When a record is added OR edited';
+$string['timeaddeditdelete'] = 'When a record is added OR edited OR deleted';
+$string['timedelete'] = 'When a record is deleted';
+$string['timeedit'] = 'When a record is edited';
+$string['timeselect'] = 'When a record is selected (List or Search template)';
+$string['timeshowlist'] = 'When a record is displayed using the List template';
+$string['timeshowsingle'] = 'When a record is displayed using the Single template ';
+$string['timespecific'] = 'At a specific time';
 $string['fixlangpack'] = '**The Action field is not yet properly installed**
 
 Please append language strings for the Action field to Database language file:
