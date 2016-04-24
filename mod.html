@@ -26,38 +26,30 @@
  ?>
 <table width="100%" cellpadding="5" class="datafield_action"><?php
 
-    $name  = 'name';
-    $value = $this->field->$name;
-    $label = get_string('field'.$name, 'data');
-    $text  = $this->format_edit_textfield($name, $value, 'field'.$name);
-    echo $this->format_table_row($name, $label, $text);
+    data_field_admin::format_core_field($this->field, 'name');
+    data_field_admin::format_core_field($this->field, 'description');
 
-    $name  = 'description';
-    $value = $this->field->$name;
-    $label = get_string('field'.$name, 'data');
-    $text  = $this->format_edit_textfield($name, $value, 'field'.$name);
-    echo $this->format_table_row($name, $label, $text);
-
-    $name  = 'actiontype';
     $param = $this->typeparam;
     $value = $this->field->$param;
+    $name  = 'actiontype';
     $label = get_string($name, 'datafield_action');
-    $text  = $this->format_edit_selectfield($param, $this->get_action_types(), $value);
-    echo $this->format_table_row($name, $label, $text);
+    $text  = data_field_admin::format_select_field($param, $this->get_action_types(), $value, $name);
+    echo data_field_admin::format_table_row($name, $label, $text);
 
-    $name  = 'actiontime';
     $param = $this->timeparam;
     $value = $this->field->$param;
+    $name  = 'actiontime';
     $label = get_string($name, 'datafield_action');
-    $text  = $this->format_edit_selectfield($param, $this->get_action_times(), $value);
-    echo $this->format_table_row($name, $label, $text);
+    $text  = data_field_admin::format_select_field($param, $this->get_action_times(), $value, $name);
+    echo data_field_admin::format_table_row($name, $label, $text);
 
     $name  = 'argument';
     for ($i=1; $i<=3; $i++) {
         $param = 'param'.($i + 2);
         $value = $this->field->$param;
         $label = get_string($name, 'datafield_action', $i);
-        $text = $this->format_edit_textarea($param, $value, 'argument', 2);
-        echo $this->format_table_row($name, $label, $text);
+        $text = data_field_admin::format_textarea_field($param, $value, $name, 2);
+        echo data_field_admin::format_table_row($name, $label, $text);
     }
+
 ?></table>

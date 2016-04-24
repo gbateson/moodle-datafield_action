@@ -29,4 +29,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 class data_field_action_confirm extends data_field_action_base {
+
+    public function execute($recordid=0) {
+    }
 }

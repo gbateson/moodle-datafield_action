@@ -31,6 +31,9 @@
 // prevent direct access to this script
 defined('MOODLE_INTERNAL') || die();
 
+// get required files
+require_once($CFG->dirroot.'/mod/data/field/admin/field.class.php');
+
 class data_field_action extends data_field_base {
 
     /**
@@ -143,20 +146,7 @@ class data_field_action extends data_field_base {
      * @return void, but output is echo'd to browser
      */
     function display_edit_field() {
-        global $CFG, $OUTPUT;
-        if (empty($this->field->id)) {
-            $strman = get_string_manager();
-            if (! $strman->string_exists($this->type, 'data')) {
-                $msg = (object)array(
-                    'langfile' => $CFG->dirroot.'/mod/data/lang/en/data.php',
-                    'readfile' => $CFG->dirroot.'/mod/data/field/action/README.txt',
-                );
-                $msg = get_string('fixlangpack', 'datafield_'.$this->type, $msg);
-                $msg = format_text($msg, FORMAT_MARKDOWN);
-                $msg = html_writer::tag('div', $msg, array('class' => 'alert', 'style' => 'width: 100%; max-width: 640px;'));
-                echo $msg;
-            }
-        }
+        data_field_admin::check_lang_strings($this);
         parent::display_edit_field();
     }
 
@@ -292,76 +282,6 @@ class data_field_action extends data_field_base {
         return array(self::ACCESS_NONE => get_string('accessnone', 'datafield_action'),
                      self::ACCESS_VIEW => get_string('accessview', 'datafield_action'),
                      self::ACCESS_EDIT => get_string('accessedit', 'datafield_action'));
-    }
-
-    /**
-     * format a table row in mod.html
-     */
-    public function format_table_row($name, $label, $text) {
-        $label = $this->format_edit_label($name, $label);
-        $output = $this->format_table_cell($label, 'c0').
-                  $this->format_table_cell($text, 'c1');
-        $output = html_writer::tag('tr', $output, array('class' => $name));
-        return $output;
-    }
-
-    /**
-     * format a table cell in mod.html
-     */
-    public function format_table_cell($text, $class) {
-        return html_writer::tag('td', $text, array('class' => $class));
-    }
-
-    /**
-     * format a label in mod.html
-     */
-    public function format_edit_label($name, $label) {
-        return html_writer::tag('label', $label, array('for' => $name));
-    }
-
-    /**
-     * format a hidden field in mod.html
-     */
-    public function format_edit_hiddenfield($name, $value) {
-        $params = array('type'  => 'hidden',
-                        'name'  => $name,
-                        'value' => $value);
-        return html_writer::empty_tag('input', $params);
-    }
-
-    /**
-     * format a text field in mod.html
-     */
-    public function format_edit_textfield($name, $value, $class, $size=10) {
-        $params = array('type'  => 'text',
-                        'id'    => 'id_'.$name,
-                        'name'  => $name,
-                        'value' => $value,
-                        'class' => $class,
-                        'size'  => $size);
-        return html_writer::empty_tag('input', $params);
-    }
-
-    /**
-     * format a textarea field in mod.html
-     */
-    public function format_edit_textarea($name, $value, $class, $rows=3, $cols=40) {
-        $params = array('id'    => 'id_'.$name,
-                        'name'  => $name,
-                        'class' => $class,
-                        'rows'  => $rows,
-                        'cols'  => $cols);
-        return html_writer::tag('textarea', $value, $params);
-    }
-
-    /**
-     * format a select field in mod.html
-     */
-    public function format_edit_selectfield($name, $values, $default='') {
-        if (isset($this->field->$name)) {
-            $default = $this->field->$name;
-        }
-        return html_writer::select($values, $name, $default, '');
     }
 
     /**

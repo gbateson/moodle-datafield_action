@@ -26,7 +26,7 @@
  */
 
 /** required strings */
-$string['pluginname'] = 'Action field';
+$string['pluginname'] = 'Action';
 
 /** more string */
 $string['actiontime'] = 'Action time';
@@ -41,16 +41,3 @@ $string['timeselect'] = 'When a record is selected (List or Search template)';
 $string['timeshowlist'] = 'When a record is displayed using the List template';
 $string['timeshowsingle'] = 'When a record is displayed using the Single template ';
 $string['timespecific'] = 'At a specific time';
-$string['fixlangpack'] = '**The Action field is not yet properly installed**
-
-Please append language strings for the Action field to Database language file:
-
-* EDIT: {$a->langfile}
-* ADD: $string[\'action\'] = \'Action\';
-* ADD: $string[\'nameaction\'] = \'Action field\';
-
-Then purge the Moodle caches:
-
-* Actionistration -> Site actionistration -> Development -> Purge all caches
-
-See {$a->readfile} for more details.';
