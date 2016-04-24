@@ -30,6 +30,18 @@ defined('MOODLE_INTERNAL') || die();
 
 class data_field_action_confirm extends data_field_action_base {
 
+    /** the field param that holds the message template */
+    public $templateparam = 'param3';
+
     public function execute($recordid=0) {
+        echo '$recordid '.$recordid;
+        $param = $this->templateparam;
+        if ($template = $this->datafield->field->$param) {
+            print_object($template);
+            echo 'To continue, you will need to make static methods in template field';
+            echo '<ul><li>replace_fieldname</li><li>replace_if_blocks</li><li>check_condition</li><li>clean_condition</li></ul>';
+            die;
+        }
+        return '';
     }
 }

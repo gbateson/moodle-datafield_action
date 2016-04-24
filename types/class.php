@@ -30,18 +30,20 @@ defined('MOODLE_INTERNAL') || die();
 
 class data_field_action_base {
 
-    /** the action field object to which this instance belongs */
-    public $field = null;
+    /** the data_field_action object of which this instance is a property */
+    public $datafield = null;
 
     /**
      * constructor
      */
-    public function __construct($field) {
-        $this->field = $field;
+    public function __construct($datafield) {
+        $this->datafield = $datafield;
     }
 
     /**
      * the function that executes this action
      */
-    public abstract function execute($recordid=0);
+    public function execute($recordid=0) {
+        return '';
+    }
 }

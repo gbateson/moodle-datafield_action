@@ -88,7 +88,7 @@ class data_field_action extends data_field_base {
     const TIME_DELETE        = 2;
     const TIME_ADDEDIT       = 3;
     const TIME_ADDEDITDELETE = 4;
-    const TIME_SELECT        = 5;
+    const TIME_SELECT        = 5; // not implemented
     const TIME_SHOWLIST      = 6;
     const TIME_SHOWSINGLE    = 7;
     const TIME_SPECIFIC      = 8; // not implemented
@@ -122,7 +122,7 @@ class data_field_action extends data_field_base {
                 $this->actiontype = $actiontype;
                 $this->actionclass = $actionclass;
                 $this->actionfolder = $actionfolder;
-                $this->actionfield = new $actionclass($field, $data, $cm);
+                $this->actionfield = new $actionclass($this);
             }
         }
     }
@@ -151,27 +151,58 @@ class data_field_action extends data_field_base {
     }
 
     /**
+     * display a form element for adding/updating
+     * content in an admin field in a user record
+     *
+     * @return HTML to send to browser
+     */
+    function display_add_field($recordid=0, $formdata=null) {
+        return data_field_admin::format_hidden_field('field_'.$this->field->id, 0);
+    }
+
+    /**
      * update content for this field sent from the "Add entry" page
      *
-     * @return boolean: TRUE if content was sccessfully updated; otherwise FALSE
+     * @return boolean: TRUE if content was successfully updated; otherwise FALSE
      */
     function update_content($recordid, $value, $name='') {
-        die('update_content in ACTION field - what do we do here?');
-        return false;
+        if (data_field_admin::is_new_record()) {
+            $times = array(self::TIME_ADD,
+                           self::TIME_ADDEDIT,
+                           self::TIME_ADDEDITDELETE);
+        } else {
+            $times = array(self::TIME_EDIT,
+                           self::TIME_ADDEDIT,
+                           self::TIME_ADDEDITDELETE);
+        }
+        $this->execute_action($times, $recordid);
+        return true;
+    }
+
+    /**
+     * delete user generated content associated with an admin field
+     * when the admin field is deleted from the "Fields" page
+     */
+    function delete_content($recordid=0) {
+        $times = array(self::TIME_DELETE,
+                       self::TIME_ADDEDITDELETE);
+        $this->execute_action($times);
+        return true;
     }
 
     /**
      * display this field on the "View list" or "View single" page
      */
     function display_browse_field($recordid, $template) {
-        if ($this->is_viewable) {
-            if ($this->actionfield) {
-                return $this->actionfield->display_browse_field($recordid, $template);
-            } else {
-                return parent::display_browse_field($recordid, $template);
-            }
+        if ($template=='listtemplate') {
+            $times = array(self::TIME_SHOWLIST);
+            return $this->execute_action($times);
         }
-        return ''; // field is not viewable
+        if ($template=='singletemplate') {
+            $times = array(self::TIME_SHOWSINGLE);
+            return $this->execute_action($times);
+        }
+        return '';
     }
 
     /**
@@ -180,69 +211,31 @@ class data_field_action extends data_field_base {
      * @return HTML to send to browser
      */
     function display_search_field() {
-        return ''; // field is not searchable
-    }
-
-    /**
-     * add extra HTML before the form on the "Add entry" page
-     * Note: this method doesn't seem to be used anywhere !!
-     */
-    function print_before_form() {
-        return '';
-    }
-
-    /**
-     * add extra HTML after the form on the "Add entry" page
-     */
-    function print_after_form() {
         return '';
     }
 
     /**
      * parse search field from "Search" page
+     * (required by view.php)
      */
     function parse_search_field() {
         return '';
     }
 
+    /**
+     * get_sort_field
+     * (required by view.php)
+     */
     function get_sort_field() {
-        if ($this->actionfield) {
-            return $this->actionfield->get_sort_field();
-        } else {
-            return parent::get_sort_field();
-        }
+        return '';
     }
 
+    /**
+     * get_sort_sql
+     * (required by view.php)
+     */
     function get_sort_sql($fieldname) {
-        if ($this->actionfield) {
-            return $this->actionfield->get_sort_sql($fieldname);
-        } else {
-            return parent::get_sort_sql($fieldname);
-        }
-    }
-
-    function text_export_supported() {
-        if ($this->actionfield) {
-            return $this->actionfield->text_export_supported();
-        } else {
-            return parent::text_export_supported();
-        }
-    }
-
-    function export_text_value($record) {
-        if ($this->actionfield) {
-            return $this->actionfield->export_text_value($record);
-        } else {
-            return parent::export_text_value($record);
-        }
-    }
-
-    function file_ok($relativepath) {
-        if ($this->actionfield) {
-            return $this->actionfield->file_ok($relativepath);
-        } else {
-            return parent::file_ok($relativepath);
-        }
+        return '';
     }
 
     /**
@@ -250,39 +243,23 @@ class data_field_action extends data_field_base {
      * Note: this function is missing from the parent class :-(
      */
     function generate_sql($tablealias, $value) {
-        if ($this->is_viewable && $this->actionfield) {
-            return $this->actionfield->generate_sql($tablealias, $value);
-        } else {
-            return '';
-        }
+        return '';
+    }
+
+    /**
+     * text export not supported for "action" fields
+     */
+    function text_export_supported() {
+        return false;
+    }
+
+    function export_text_value($record) {
+        return '';
     }
 
     ///////////////////////////////////////////
     // custom methods
     ///////////////////////////////////////////
-
-    /**
-     * Allow access to actionfield values
-     * even though the actionfield may not be viewable.
-     * This allows the value to be used in IF-THEN-ELSE
-     * conditions within "template" fields.
-     */
-    function get_condition_value($recordid, $template) {
-        $is_viewable = $this->is_viewable;
-        $this->is_viewable = true;
-        $value = $this->display_browse_field($recordid, $template);
-        $this->is_viewable = $is_viewable;
-        return $value;
-    }
-
-    /**
-     * get options for field accessibility (for display in mod.html)
-     */
-    public function get_access_types() {
-        return array(self::ACCESS_NONE => get_string('accessnone', 'datafield_action'),
-                     self::ACCESS_VIEW => get_string('accessview', 'datafield_action'),
-                     self::ACCESS_EDIT => get_string('accessedit', 'datafield_action'));
-    }
 
     /**
      * get path to action types folder
@@ -333,10 +310,22 @@ class data_field_action extends data_field_base {
             self::TIME_DELETE        => get_string('timedelete',        $plugin),
             self::TIME_ADDEDIT       => get_string('timeaddedit',       $plugin),
             self::TIME_ADDEDITDELETE => get_string('timeaddeditdelete', $plugin),
-            self::TIME_SELECT        => get_string('timeselect',        $plugin),
+            // self::TIME_SELECT     => get_string('timeselect',        $plugin),
             self::TIME_SHOWLIST      => get_string('timeshowlist',      $plugin),
             self::TIME_SHOWSINGLE    => get_string('timeshowsingle',    $plugin)
-            //self::TIME_SPECIFIC      => get_string('timespecific',    $plugin)
+            //self::TIME_SPECIFIC    => get_string('timespecific',      $plugin)
         );
+    }
+
+    /**
+     * execute action if this is one of the required times
+     */
+    public function execute_action($times, $recordid=0) {
+        $param = $this->timeparam;
+        if (in_array($this->field->$param, $times)) {
+            return $this->actionfield->execute($recordid);
+        } else {
+            return '';
+        }
     }
 }
