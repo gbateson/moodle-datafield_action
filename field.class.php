@@ -105,6 +105,7 @@ class data_field_action extends data_field_base {
      * @param object $cm record from "course_modules" table
      */
     function __construct($field=0, $data=0, $cm=0) {
+        global $CFG; // maybe needed by types/xxx/class.php
 
         // set up this field in the normal way
         parent::__construct($field, $data, $cm);
@@ -117,7 +118,6 @@ class data_field_action extends data_field_base {
             $actionfolder = self::get_action_types_path($actiontype);
             $filepath = $actionfolder.'/class.php';
             if (file_exists($filepath)) {
-                require_once(self::get_action_types_path('class.php'));
                 require_once($filepath);
                 $this->actiontype = $actiontype;
                 $this->actionclass = $actionclass;
@@ -327,5 +327,76 @@ class data_field_action extends data_field_base {
         } else {
             return '';
         }
+    }
+
+    ///////////////////////////////////////////
+    // static methods
+    ///////////////////////////////////////////
+
+    /**
+     * convert string from HTML to PDF and send to specified $destination
+     *
+     * @param string $html
+     * @param string $filepath
+     * @param array  $options
+     * @param string $destination (see Output method in "lib/tcpdf/tcpdf.php")
+     * @return void, but will send PDF content to local file (F) or browser (I)
+     */
+    static public function create_pdf($html, $filepath, $options=array(), $destination='F') {
+        $doc = new pdf();
+
+        if (file_exists($filepath)) {
+            unlink($filepath);
+        }
+
+        if (empty($options['margins'])) {
+            $options['margins'] = array(15, 30);
+        } else if (is_scalar($options['margins'])) {
+            $options['margins'] = array($options['margins'],
+                                        $options['margins']);
+        }
+
+        if (empty($options['textcolor'])) {
+            $options['textcolor'] = array(0, 0, 0); // black
+        } else if (is_scalar($options['textcolor'])) {
+            $options['textcolor'] = array($options['textcolor'],
+                                          $options['textcolor'],
+                                          $options['textcolor']);
+        }
+
+        foreach ($options as $name => $value) {
+            switch ($name) {
+
+                // basic info
+                case 'title'   : $doc->SetTitle($value); break;
+                case 'author'  : $doc->SetAuthor($value); break;
+                case 'creator' : $doc->SetCreator($value); break;
+                case 'keywords': $doc->SetKeywords($value); break;
+                case 'subject' : $doc->SetSubject($value);  break;
+                case 'margins' : $doc->SetMargins($value[0],
+                                                  $value[1]); break;
+
+                // header info
+                case 'printheader' : $doc->setPrintHeader($value);  break;
+                case 'headermargin': $doc->setHeaderMargin($value); break;
+                case 'headerfont'  : $doc->setHeaderFont($value);   break;
+                case 'headerdata'  : $doc->setHeaderData($value);   break;
+
+                // footer info
+                case 'printfooter' : $doc->setPrintFooter($value);  break;
+                case 'footerpargin': $doc->setFooterMargin($value); break;
+                case 'footerfont'  : $doc->setFooterFont($value);   break;
+
+                // text and font info
+                case 'textcolor': $doc->SetTextColor($value[0], $value[1], $value[2]); break;
+                case 'fillcolor': $doc->SetFillColor($value[0], $value[1], $value[2]); break;
+                case 'font'     : $doc->SetFont($value[0], $value[1], $value[2])     ; break;
+
+            }
+        }
+
+        $doc->AddPage();
+        $doc->writeHTML($html);
+        $doc->Output($filepath, $destination);
     }
 }

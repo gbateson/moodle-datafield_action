@@ -28,6 +28,9 @@
 // prevent direct access to this script
 defined('MOODLE_INTERNAL') || die();
 
+// get required files
+require_once($CFG->dirroot.'/mod/data/field/action/types/class.php');
+
 class data_field_action_unapprove extends data_field_action_base {
 
     /**
