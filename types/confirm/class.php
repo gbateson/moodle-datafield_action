@@ -35,7 +35,7 @@ require_once($CFG->dirroot.'/mod/data/field/template/field.class.php');
 
 class data_field_action_confirm extends data_field_action_base {
 
-    /** the field params that holds the message info */
+    /** the field params that hold the message info */
     public $subjectparam = 'param3'; // argument 1
     public $messageparam = 'param4'; // argument 2
     public $pdfparam     = 'param5'; // argument 3
@@ -54,6 +54,12 @@ class data_field_action_confirm extends data_field_action_base {
         }
         if (! $user = $DB->get_record('user', array('id' => $userid))) {
             return ''; // shouldn't happen !!
+        }
+
+        // to prevent this action being used to send spam,
+        // we don't send email to guest users
+        if (is_guest($context, $user)) {
+            return '';
         }
 
         // define template format to be used
@@ -101,12 +107,13 @@ class data_field_action_confirm extends data_field_action_base {
             $pdf = $messagehtml; // the default
         }
 
-        // create fullpath to PFD file
+        // create fullpath to PDF file
         $attachname = "$field->name.$recordid.pdf";
         $attachment = $CFG->tempdir.'/'.$attachname;
 
         // convert HTML content to PDF and store in $attachment file
-        $options = array('subject' => $subject);
+        $options = array('subject' => $subject,
+                         'font' => data_field_action::get_pdf_font());
         data_field_action::create_pdf($pdf, $attachment, $options);
 
         // email the message with PDF $attachment

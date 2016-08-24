@@ -334,6 +334,39 @@ class data_field_action extends data_field_base {
     ///////////////////////////////////////////
 
     /**
+     * get list of font familes available in PDF documents
+     *
+     * @return array of font family names ($family => $fonts)
+     */
+    static public function get_pdf_font_list() {
+        global $CFG;
+        require_once($CFG->libdir.'/pdflib.php');
+        if (method_exists('pdf', 'get_font_families')) {
+            $doc = new pdf();
+            $list = $doc->get_font_families();
+        } else {
+            $list = array('freeserif' => 'freeserif',
+                          'freesans'  => 'freesans');
+        }
+        return $list;
+    }
+
+    /**
+     * get information about the required PDF font
+     *
+     * @return array of font information ($family, $style, $size)
+     */
+    static public function get_pdf_font() {
+        // preferably, these settings should come from the UI
+        // but the action form is full and there is no way to
+        // add settings for the data activity or the data module
+        $family = 'kozgopromedium';
+        $style = '';
+        $size = null;
+        return array($family, $style, $size);
+    }
+
+    /**
      * convert string from HTML to PDF and send to specified $destination
      *
      * @param string $html
