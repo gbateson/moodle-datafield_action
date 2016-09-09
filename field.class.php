@@ -345,8 +345,9 @@ class data_field_action extends data_field_base {
             $doc = new pdf();
             $list = $doc->get_font_families();
         } else {
-            $list = array('freeserif' => 'freeserif',
-                          'freesans'  => 'freesans');
+            $list = array('freemmono' => 'freemono',
+                          'freesans'  => 'freesans',
+                          'freeserif' => 'freeserif');
         }
         return $list;
     }
@@ -360,6 +361,30 @@ class data_field_action extends data_field_base {
         // preferably, these settings should come from the UI
         // but the action form is full and there is no way to
         // add settings for the data activity or the data module
+        // Core:     courier   (b/bi/i) [monospace]
+        //           helvetica (b/bi/i) [sans-serif]
+        //           times     (b/bi/i) [serif]
+        //           symbol
+        //           zapfdingbats
+        // TrueTypeUnicode:
+        //           freemono  (b/bi/i)
+        //           freesans  (b/bi/i)
+        //           freeserif (b/bi/i)
+        // Chinese:  msungstdlight
+        //           stsongstdlight
+        // Japanese: kozgopromedium (Sans-serif)
+        //           kozminproregular (Serif)
+        // Korean:   hysmyeongjostdmedium
+        //
+        // useful post about other PDF fonts in Moodle:
+        // http://opensourceelearning.blogspot.jp/2014/10/multi-language-certificate-tips-for.html
+        //
+        //switch (substr(current_language(), 0, 2)) {
+        //    case 'ja': $family = 'kozgopromedium';       break;
+        //    case 'ko': $family = 'hysmyeongjostdmedium'; break;
+        //    case 'zh': $family = 'msungstdlight';        break;
+        //    default:   $family = 'freesans';
+        //}
         $family = 'kozgopromedium';
         $style = '';
         $size = null;
