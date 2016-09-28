@@ -56,6 +56,16 @@ class data_field_action_confirm extends data_field_action_base {
             return ''; // shouldn't happen !!
         }
 
+        // don't send mail if mailing is disabled (development sites)
+        if (! empty($CFG->noemailever)) {
+            return '';
+        }
+
+        // don't send mail from localhost
+        if (preg_match('/^https?:\/\/localhost/', $CFG->wwwroot)) {
+            return '';
+        }
+
         // to prevent this action being used to send spam,
         // we don't send email to guest users
         if (is_guest($context, $user)) {
