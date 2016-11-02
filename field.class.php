@@ -247,12 +247,15 @@ class data_field_action extends data_field_base {
     }
 
     /**
-     * text export not supported for "action" fields
+     * text export is not supported for "action" fields
      */
     function text_export_supported() {
         return false;
     }
 
+    /**
+     * text export is not supported for "action" fields
+     */
     function export_text_value($record) {
         return '';
     }
