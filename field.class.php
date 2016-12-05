@@ -119,10 +119,12 @@ class data_field_action extends data_field_base {
             $filepath = $actionfolder.'/class.php';
             if (file_exists($filepath)) {
                 require_once($filepath);
-                $this->actiontype = $actiontype;
-                $this->actionclass = $actionclass;
-                $this->actionfolder = $actionfolder;
-                $this->actionfield = new $actionclass($this);
+                if (class_exists($actionclass)) {
+                    $this->actiontype = $actiontype;
+                    $this->actionclass = $actionclass;
+                    $this->actionfolder = $actionfolder;
+                    $this->actionfield = new $actionclass($this);
+                }
             }
         }
     }

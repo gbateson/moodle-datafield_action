@@ -41,20 +41,12 @@ class data_field_action_confirm extends data_field_action_base {
     public $pdfparam     = 'param5'; // argument 3
 
     public function execute($recordid=0) {
-        global $CFG, $DB;
+        global $CFG, $DB, $USER;
 
         $context = $this->datafield->context;
         $cm      = $this->datafield->cm;
         $data    = $this->datafield->data;
         $field   = $this->datafield->field;
-
-        // check $user record for this $recordid is available
-        if (! $userid = $DB->get_field('data_records', 'userid', array('id' => $recordid))) {
-            return ''; // shouldn't happen !!
-        }
-        if (! $user = $DB->get_record('user', array('id' => $userid))) {
-            return ''; // shouldn't happen !!
-        }
 
         // don't send mail if mailing is disabled (development sites)
         if (! empty($CFG->noemailever)) {
@@ -66,9 +58,14 @@ class data_field_action_confirm extends data_field_action_base {
             return '';
         }
 
+        // don't send mail if a manager has just added/edited someone else's record
+        if ($USER->id != $DB->get_field('data_records', 'userid', array('id' => $recordid))) {
+            return ''; // shouldn't happen !!
+        }
+
         // to prevent this action being used to send spam,
         // we don't send email to guest users
-        if (is_guest($context, $user)) {
+        if (is_guest($context, $USER)) {
             return '';
         }
 
@@ -101,7 +98,7 @@ class data_field_action_confirm extends data_field_action_base {
         // and then generate an HTML version of the $message
         $message = file_rewrite_pluginfile_urls($message, 'pluginfile.php', $context->id, 'mod_data', 'content', $itemid, $fileoptions);
         $message = data_field_template::replace_if_blocks($data, $field, $recordid, $template, $message);
-        $message = data_field_template::replace_fieldnames($context, $cm, $data, $field, $recordid, $template, $user, $message);
+        $message = data_field_template::replace_fieldnames($context, $cm, $data, $field, $recordid, $template, $USER, $message);
         $messagehtml = format_text($message, FORMAT_MOODLE, $formatoptions);
 
         // the pdf will be sent as an attachment
@@ -111,7 +108,7 @@ class data_field_action_confirm extends data_field_action_base {
         if ($pdf = $field->$param) {
             $pdf = file_rewrite_pluginfile_urls($pdf, 'pluginfile.php', $context->id, 'mod_data', 'content', $itemid, $fileoptions);
             $pdf = data_field_template::replace_if_blocks($data, $field, $recordid, $template, $pdf);
-            $pdf = data_field_template::replace_fieldnames($context, $cm, $data, $field, $recordid, $template, $user, $pdf);
+            $pdf = data_field_template::replace_fieldnames($context, $cm, $data, $field, $recordid, $template, $USER, $pdf);
             $pdf = format_text($pdf, FORMAT_MOODLE, $formatoptions);
         } else {
             $pdf = $messagehtml; // the default
@@ -127,14 +124,20 @@ class data_field_action_confirm extends data_field_action_base {
         data_field_action::create_pdf($pdf, $attachment, $options);
 
         // email the message with PDF $attachment
-        $admin = get_admin(); // the main admin user
-        email_to_user($user, $admin, $subject, $message, $messagehtml, $attachment, $attachname);
+        if (class_exists('core_user')) {
+            // Moodle >= 2.6
+            $noreply = core_user::get_noreply_user();
+        } else {
+            // Moodle <= 2.5
+            $noreply = generate_email_supportuser();
+        }
+        email_to_user($USER, $noreply, $subject, $message, $messagehtml, $attachment, $attachname);
 
         // remove PDF file from server
         if (file_exists($attachment)) {
             unlink($attachment);
         }
 
-        return 'Confirmation email was sent to '.$user->email;
+        return 'Confirmation email was sent to '.$USER->email;
     }
 }
