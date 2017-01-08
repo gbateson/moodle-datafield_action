@@ -267,9 +267,25 @@ class data_field_action extends data_field_base {
     ///////////////////////////////////////////
 
     /**
+     * execute action if this is one of the required times
+     */
+    public function execute_action($times, $recordid=0) {
+        $param = $this->timeparam;
+        if (in_array($this->field->$param, $times)) {
+            return $this->actionfield->execute($recordid);
+        } else {
+            return '';
+        }
+    }
+
+    ///////////////////////////////////////////
+    // static methods
+    ///////////////////////////////////////////
+
+    /**
      * get path to action types folder
      */
-    public function get_action_types_path($extra='') {
+    static public function get_action_types_path($extra='') {
         global $CFG;
         $path = $CFG->dirroot.'/mod/data/field/action/types';
         if ($extra) {
@@ -281,11 +297,11 @@ class data_field_action extends data_field_base {
     /**
      * get list of action types
      */
-    public function get_action_types() {
+    static public function get_action_types() {
         $types = array();
         $plugin = 'datafield_action';
         $strman = get_string_manager();
-        $items = $this->get_action_types_path();
+        $items = self::get_action_types_path();
         $items = new DirectoryIterator($items);
         foreach ($items as $item) {
             if ($item->isDot() || substr($item, 0, 1)=='.' || trim($item)=='') {
@@ -307,7 +323,7 @@ class data_field_action extends data_field_base {
     /**
      * get list of action times
      */
-    public function get_action_times() {
+    static public function get_action_times() {
         $plugin = 'datafield_action';
         return array(
             self::TIME_ADD           => get_string('timeadd',           $plugin),
@@ -321,22 +337,6 @@ class data_field_action extends data_field_base {
             //self::TIME_SPECIFIC    => get_string('timespecific',      $plugin)
         );
     }
-
-    /**
-     * execute action if this is one of the required times
-     */
-    public function execute_action($times, $recordid=0) {
-        $param = $this->timeparam;
-        if (in_array($this->field->$param, $times)) {
-            return $this->actionfield->execute($recordid);
-        } else {
-            return '';
-        }
-    }
-
-    ///////////////////////////////////////////
-    // static methods
-    ///////////////////////////////////////////
 
     /**
      * get list of font familes available in PDF documents
