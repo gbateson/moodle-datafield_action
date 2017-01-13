@@ -182,13 +182,14 @@ class data_field_action extends data_field_base {
     }
 
     /**
-     * delete user generated content associated with an admin field
-     * when the admin field is deleted from the "Fields" page
+     * delete content associated with an action field
+     * when the field is deleted from the "Fields" page
      */
     function delete_content($recordid=0) {
         $times = array(self::TIME_DELETE,
                        self::TIME_ADDEDITDELETE);
         $this->execute_action($times);
+        data_field_admin::delete_content_files($this);
         return true;
     }
 
