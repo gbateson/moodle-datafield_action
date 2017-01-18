@@ -27,6 +27,7 @@
 
 /** required strings */
 $string['pluginname'] = 'Action';
+$string['fieldtypelabel'] = 'Action field';
 
 /** more string */
 $string['actiontime'] = 'Action time';
@@ -43,3 +44,4 @@ $string['timeselect'] = 'When a record is selected (List or Search template)';
 $string['timeshowlist'] = 'When a record is displayed using the List template';
 $string['timeshowsingle'] = 'When a record is displayed using the Single template ';
 $string['timespecific'] = 'At a specific time';
+
