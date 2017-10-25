@@ -97,7 +97,7 @@ class data_field_action_confirm extends data_field_action_base {
         // replace fieldnames with field values in $message
         // and then generate an HTML version of the $message
         $message = file_rewrite_pluginfile_urls($message, 'pluginfile.php', $context->id, 'mod_data', 'content', $itemid, $fileoptions);
-        $message = data_field_template::replace_if_blocks($data, $field, $recordid, $template, $message);
+        $message = data_field_template::replace_if_blocks($context, $cm, $data, $field, $recordid, $template, $USER, $message);
         $message = data_field_template::replace_fieldnames($context, $cm, $data, $field, $recordid, $template, $USER, $message);
         $messagehtml = format_text($message, FORMAT_MOODLE, $formatoptions);
 
