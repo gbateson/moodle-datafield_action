@@ -130,6 +130,13 @@ class data_field_action extends data_field_base {
     }
 
     /**
+     * generate HTML to display icon for this field type on the "Fields" page
+     */
+    function image() {
+        return data_field_admin::field_icon($this);
+    }
+
+    /**
      * default field values for new ACTION field
      */
     function define_default_field() {

@@ -25,7 +25,30 @@
  * @since     Moodle 2.0
  */
 
-.path-mod-data-field form#editfield table.datafield_action tr.argument td.c0 {
+.path-mod-data-field .datafield_action tr.argument td.c0 {
     padding-top: 10px;
     vertical-align: top;
+}
+
+.path-mod-data .datafield_action_paypal_form {
+	background-color:    #fec;
+	background: linear-gradient(#fc9, #fec);
+	border:    2px solid #f90;
+	border-radius:        6px;
+	display:     inline-block;
+	margin:           0px 6px;
+	padding:          0px 6px;
+	text-align:        center;
+}
+.path-mod-data .datafield_action_paypal_title {
+    font-weight:          500;
+    margin:               0px;
+    padding:              6px;
+}
+.path-mod-data .datafield_action_paypal_select {
+	margin:               0px;
+	padding:              8px;
+}
+.path-mod-data .datafield_action_paypal_button {
+	padding:              8px;
 }
