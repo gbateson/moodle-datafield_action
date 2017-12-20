@@ -270,6 +270,16 @@ class data_field_action extends data_field_base {
         return '';
     }
 
+    /**
+     * Return the plugin configs for external functions.
+     *
+     * @return array the list of config parameters
+     * @since Moodle 3.3
+     */
+    public function get_config_for_external() {
+    	return data_field_admin::get_field_params($this->field);
+    }
+
     ///////////////////////////////////////////
     // custom methods
     ///////////////////////////////////////////
