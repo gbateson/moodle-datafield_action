@@ -33,6 +33,24 @@ require_once($CFG->dirroot.'/mod/data/field/action/types/class.php');
 
 class data_field_action_paypal extends data_field_action_base {
 
+    // https://developer.paypal.com/docs/classic/paypal-payments-standard/integration-guide/Appx_websitestandard_htmlvariables/
+    // https://developer.paypal.com/docs/classic/paypal-payments-standard/integration-guide/formbasics/
+
+    // You have to enable auto return in your PayPal account,
+    // otherwise it will ignore the return field.
+
+    // The "rm" flag only applies to the Continue button, not auto-return.
+    // If you want the payment details POSTed to your "return" URL,
+    // you'll need to use the regular Continue button.
+    // We (PayPal) advise using IPN for any post-payment processing.
+
+    // enrol/paypal/enrol.html // sample PayPal form
+    // enrol/paypal/ipn.php    // sample IPN listener
+
+    public $buttonparam  = 'param3'; // argument 1
+    public $titleparam   = 'param4'; // argument 2
+    public $sandboxparam = 'param5'; // argument 3
+
     /**
      * generate HTML code for PayPal button
      */
@@ -121,7 +139,7 @@ class data_field_action_paypal extends data_field_action_base {
         }
 
         // setup URLs (always use sandbox during development)
-        if (empty($field->param5)) {
+        if (empty($field->{$this->sandboxparam})) {
             $action = 'https://www.paypal.com/cgi-bin/webscr';
         } else {
             $action = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
@@ -186,13 +204,20 @@ class data_field_action_paypal extends data_field_action_base {
         }
 
         // add title
-        $button .= html_writer::tag('div', $field->param4, array('class' => $plugin.'_paypal_title'))."\n";
+        $title = trim($field->{$this->titleparam});
+        if ($title=='') {
+            $title = get_string('argument', $plugin, 3);
+        }
+        $button .= html_writer::tag('div', $title, array('class' => $plugin.'_paypal_title'))."\n";
 
         $option = '';
         $options = array();
 
         // create select options
-        $lines = preg_split('/[\r\n]+/', $field->param3);
+        // we expect hosted_button_id on its own line,
+        // followed by lines of multilang text
+        $lines = $field->{$this->buttonparam};
+        $lines = preg_split('/[\r\n]+/', $lines);
         $lines = array_map('trim', $lines);
         $lines = array_filter($lines);
         foreach ($lines as $line) {
@@ -202,8 +227,10 @@ class data_field_action_paypal extends data_field_action_base {
             } else if (empty($option)) {
                 // ignore lines before first valid button_id
             } else if (empty($options[$option])) {
+                // add first text line
                 $options[$option] = $line;
             } else {
+                // append subsequent text line
                 $options[$option] .= $line;
             }
         }
