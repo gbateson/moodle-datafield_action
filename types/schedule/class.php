@@ -37,13 +37,13 @@ class data_field_action_schedule extends data_field_action_base {
      * override the automatic approval of records created by teachers and admins
      */
     public function execute($recordid=0) {
-        global $CFG, $DB, $USER;
+        global $CFG, $DB;
 
         $filepath = $CFG->dirroot.'/blocks/maj_submissions/block_maj_submissions.php';
-        if (file_exists($filepath)) {
+        if (file_exists($filepath) && is_readable($filepath)) {
             require_once($filepath);
         } else {
-            return ''; // The plugin not installed on this Moodle site.
+            return ''; // Required plugin not installed on this Moodle site.
         }
 
         // Initialize the conference schedule "page" object.
@@ -71,7 +71,7 @@ class data_field_action_schedule extends data_field_action_base {
             return ''; // There is no conference schedule in this course.
         }
 
-        $search = '/<td[^>]*id="id_recordid_'.$recordid.'"[^>]*>(.*?)</td>/ius';
+        $search = '/<td[^>]*id="id_recordid_'.$recordid.'"[^>]*>(.*?)<\/td>/ius';
         if (preg_match($search, $page->content, $matches, PREG_OFFSET_CAPTURE)) {
             list($match, $start) = $matches[1];
 
@@ -79,10 +79,10 @@ class data_field_action_schedule extends data_field_action_base {
 			$sql = 'SELECT df.name, dc.content '.
 			         'FROM {data_content} dc, {data_fields} df '.
 			        'WHERE dc.recordid = ? AND dc.fieldid = df.id '.
-			          'AND df.type NOT IN (?, ?, ?, ?, ?, ?)'.$sql;
+			          'AND df.type NOT IN (?, ?, ?, ?, ?, ?)';
             $params = array($recordid, 'action', 'constant', 'file', 'picture', 'template', 'url');
             if ($item = $DB->get_records_sql_menu($sql, $params)) {
-                $item = block_maj_submissions::format_item($item);
+                $item = block_maj_submissions::format_item($instance, $recordid, $item, false);
                 $page->content = substr_replace($page->content, $item, $start, strlen($match));
                 $DB->update_record('page', $page); // always returns TRUE
                 return get_string('scheduleupdated', 'datafield_action');
