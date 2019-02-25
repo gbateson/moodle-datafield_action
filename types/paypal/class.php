@@ -47,9 +47,9 @@ class data_field_action_paypal extends data_field_action_base {
     // enrol/paypal/enrol.html // sample PayPal form
     // enrol/paypal/ipn.php    // sample IPN listener
 
-    public $buttonparam  = 'param3'; // argument 1
-    public $titleparam   = 'param4'; // argument 2
-    public $sandboxparam = 'param5'; // argument 3
+    public $titleparam  = 'param3'; // argument 1
+    public $hiddenparam = 'param4'; // argument 2
+    public $selectparam = 'param5'; // argument 3
 
     /**
      * generate HTML code for PayPal button
@@ -138,23 +138,37 @@ class data_field_action_paypal extends data_field_action_base {
             $paypallocale = $locale;
         }
 
-        // setup URLs (always use sandbox during development)
-        if (empty($field->{$this->sandboxparam})) {
+        // extract title from argument 1
+        $title = $field->{$this->titleparam};
+        $title = preg_split('/[\r\n]+/', $title);
+        $title = array_map('trim', $title);
+        $title = array_filter($title);
+
+        // last line, if any, is the sandbox flag
+        if (end($title)=='sandbox') {
             $action = 'https://www.paypal.com/cgi-bin/webscr';
         } else {
             $action = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
         }
-        $notify = new moodle_url('/mod/data/field/action/paypal/notify.php');
-        $return = new moodle_url('/mod/data/field/action/paypal/return.php');
-        $cancel = new moodle_url('/mod/data/field/action/paypal/cancel.php');
+
+        // format multilang title
+        if ($title) {
+            $title = format_string(implode($title));
+        } else {
+            $title = get_string('argument', $plugin, 1);
+        }
+        
+        $notify = new moodle_url('/mod/data/field/action/paypal/notify.php'); // the main IPN listener
+        $return = new moodle_url('/mod/data/field/action/paypal/return.php'); // if user buys, they go here
+        $cancel = new moodle_url('/mod/data/field/action/paypal/cancel.php'); // if user cancels, they go here
 
         // set up return button text (displayed on PayPal site)
         $returntext = format_string($COURSE->fullname);
         $returntext = get_string('returntosite', $plugin, $returntext);
 
         // add hidden values
-        $values = array(
-            'cmd'           => '_s-xclick',
+        $hidden = array(
+            'cmd'           => '_s-xclick', // i.e. Buy Now buttons
             'charset'       => 'utf-8',
             'no_shipping'   => '1',  // 1=address info is not required
             'rm'            => '2',  // 2=values are returned via POST
@@ -163,6 +177,11 @@ class data_field_action_paypal extends data_field_action_base {
             'notify_url'    => $notify->out(false),
             'cbt'           => $returntext,
             'locale.x'      => $locale,
+
+            // pass-thru values
+            // 'custom'      => ''
+            // 'item_number' => ''
+            // 'invoice'     => ''
 
             // unused fields
             //'business'    => '$buttonbusiness',
@@ -187,62 +206,84 @@ class data_field_action_paypal extends data_field_action_base {
             'country'      => $USER->country
         );
 
-        // create HTML for button
-        $button = '';
-        $button .= html_writer::start_tag('form', array('action' => $action,
-                                                        'method' => 'post',
-                                                        'target' => 'MAJ',
-                                                        'class' => $plugin.'_paypal_form'))."\n";
-        foreach ($values as $name => $value) {
+        // extract hidden fields from argument 2
+        $lines = $field->{$this->hiddenparam};
+        $lines = preg_split('/[\r\n]+/', $lines);
+        $lines = array_map('trim', $lines);
+        $lines = array_filter($lines);
+
+        $name = '';
+        foreach ($lines as $line) {
+            if (strpos($line, '=')) {
+                // a single line, formatted as name=value
+                list($name, $value) = explode('=', $line, 2);
+                $hidden[$name] = $value;
+                $name = '';
+            } else if ($name=='') {
+                // assume this line is an option name
+                $name = $line;
+            } else {
+                // overwrite previous value, if any
+                $hidden[$name] = $line;
+                $name = '';
+            }
+        }
+
+        foreach ($hidden as $name => $value) {
             if (empty($value)) {
                 continue;
             }
             $params = array('type' => 'hidden',
                             'name' => $name,
                             'value' => $value);
-            $button .= html_writer::empty_tag('input', $params)."\n";
+            $hidden[$name] = html_writer::empty_tag('input', $params);
         }
+        $hidden = implode("\n", $hidden);
 
-        // add title
-        $title = trim($field->{$this->titleparam});
-        if ($title=='') {
-            $title = get_string('argument', $plugin, 3);
-        }
-        $button .= html_writer::tag('div', $title, array('class' => $plugin.'_paypal_title'))."\n";
-
-        $option = '';
-        $options = array();
-
-        // create select options
-        // we expect hosted_button_id on its own line,
-        // followed by lines of multilang text
-        $lines = $field->{$this->buttonparam};
+        // extract select menu from argument 3
+        $lines = $field->{$this->selectparam};
         $lines = preg_split('/[\r\n]+/', $lines);
         $lines = array_map('trim', $lines);
         $lines = array_filter($lines);
+
+        $select = '';
+        $options = array();
         foreach ($lines as $line) {
-            // hosted_button_id e.g. EW5WX52W69XXS
-            if (preg_match('/^[A-Z0-9]{12,16}$/', $line)) {
-                $option = $line;
-            } else if (empty($option)) {
-                // ignore lines before first valid button_id
-            } else if (empty($options[$option])) {
-                // add first text line
-                $options[$option] = $line;
-            } else {
-                // append subsequent text line
-                $options[$option] .= $line;
+            if ($select=='') {
+                $select = $line;
+            } else if (substr($line, 0, 1)=='=') {
+                $value = $line;
+                $options[$value] = array();
+            } else if (substr($line, 0, 1)=='|') {
+                $options[$value][] = $line;
             }
         }
-        $options = array_map('format_string', $options);
 
-        // add select menu
-        if (count($options)) {
-            $name = 'hosted_button_id';
-            $params = array('id' => 'id_'.$name,
-                            'class' => $plugin.'_paypal_select');
-            $button .= html_writer::select($options, $name, '', '', $params)."\n";
+        if ($select) {
+            $select = html_writer::start_tag('select', array('name' => $select,
+                                                             'id' => 'id_'.$select))."\n";
+            foreach ($options as $value => $text) {
+                if (empty($text)) {
+                    $text = $value;
+                } else {
+                    $text = implode('', $text);
+                }
+                $select .= html_writer::tag('option', $text, array('value' => $value))."\n";
+            }
+            $select .= html_writer::end_tag('select');
         }
+
+        // create HTML for button
+        $button = '';
+        $button .= html_writer::start_tag('form', array('action' => $action,
+                                                        'method' => 'post',
+                                                        'target' => 'MAJ',
+                                                        'class' => $plugin.'_paypal_form'))."\n";
+
+        $button .= html_writer::tag('div', $title, array('class' => $plugin.'_paypal_title'))."\n";
+
+        // add hidden and select fields
+        $button .= $hidden.$select;
 
         // add Submit button
         $params = array('class' => $plugin.'_paypal_button');

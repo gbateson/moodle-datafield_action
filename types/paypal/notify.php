@@ -18,6 +18,9 @@
 /**
  * Class to represent a "datafield_action" type
  *
+ * this file is the main PayPal IPN handler for data/field/action/type/paypal
+ * (see "enrol/paypal/ipn.php" for an example of how this could be done)
+ * 
  * @package    data
  * @subpackage datafield_action
  * @copyright  2015 Gordon Bateson (gordon.bateson@gmail.com)

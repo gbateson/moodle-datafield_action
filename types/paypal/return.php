@@ -18,6 +18,9 @@
 /**
  * Class to represent a "datafield_action" type
  *
+ * This script is where people are sent having paid via PayPal
+ * (see "enrol/paypal/return.php" for an example of hos this might be done)
+ *
  * @package    data
  * @subpackage datafield_action
  * @copyright  2015 Gordon Bateson (gordon.bateson@gmail.com)

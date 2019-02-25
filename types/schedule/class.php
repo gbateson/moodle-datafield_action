@@ -34,7 +34,8 @@ require_once($CFG->dirroot.'/mod/data/field/action/types/class.php');
 class data_field_action_schedule extends data_field_action_base {
 
     /**
-     * override the automatic approval of records created by teachers and admins
+     * If a teacher/admin is updating the current record,
+     * then update the conference schedule, if there is one
      */
     public function execute($recordid=0) {
         global $CFG, $DB;
@@ -53,20 +54,19 @@ class data_field_action_schedule extends data_field_action_base {
         $courseid = $this->datafield->data->course;
         $coursecontext = context_course::instance($courseid);
 
-        // Specify the block name and the full name of its plugin
-        $blockname = 'maj_submissions';
-        $blockplugin = "block_$blockname";
-
-        $params = array('blockname' => $blockname,
-                        'parentcontextid' => $coursecontext->id);
-        if ($blockinstance = $DB->get_record('block_instances', $params)) {
-            $instance = block_instance($blockname, $blockinstance);
-            if ($cmid = $instance->config->publishcmid) {
-                if ($cm = get_coursemodule_from_id('page', $cmid, $courseid)) {
-                    $page = $DB->get_record('page', array('id' => $cm->instance));
+        if (has_capability('moodle/course:manageactivities', $coursecontext)) {
+            $params = array('blockname' => 'maj_submissions',
+                            'parentcontextid' => $coursecontext->id);
+            if ($blockinstance = $DB->get_record('block_instances', $params)) {
+                $instance = block_instance('maj_submissions', $blockinstance);
+                if ($cmid = $instance->config->publishcmid) {
+                    if ($cm = get_coursemodule_from_id('page', $cmid, $courseid)) {
+                        $page = $DB->get_record('page', array('id' => $cm->instance));
+                    }
                 }
             }
         }
+
         if (empty($page) || empty($page->content)) {
             return ''; // There is no conference schedule in this course.
         }
