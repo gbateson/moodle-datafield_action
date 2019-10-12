@@ -1,0 +1,87 @@
+========================================
+Change log for datafield_action
+========================================
+
+2019-02-25 (22)
+ -  fix URL of secondary zip download site 
+
+2019-02-25 (22)
+ -  small optimization of code, and associated comments, when locating conference schedule in current course 
+
+2019-02-25 (22)
+ -  only allow teachers to update conference schedule 
+
+2019-02-24 (21)
+ -  ensure appropriate parent classes are available for new 'schedule' action type 
+
+2019-02-23 (20)
+ -  add new 'schedule' action that updates a conference schedule when a presentation record is modified 
+
+2018-03-26 (19)
+ -  add notes about PayPal field settings 
+
+2017-12-20 (18)
+ -  add new standard method, 'get_config_for_external()' 
+
+2017-12-17 (17)
+ -  add pix/iconf.gif in github repository 
+
+2017-12-16 (16)
+ -  add new action type to crete PayPal buttons 
+
+2017-12-15 (15)
+ -  add preliminary version of new paypal action 
+
+2017-10-25 (14)
+ -  modify calls to replace_blocks in datafield_template to pass $context, $cm and $user 
+
+2017-01-18 (13)
+ -  add string srequired for Moodle >= 3.2 
+
+2017-01-13 (12)
+ -  ensure files are deleted from filearea when fields of this type are deleted from Fields page 
+
+2017-01-11 (10)
+ -  add lib.php with function to rewrite file URLs 
+
+2017-01-08 (09)
+ -  use static methods to create elements in edit form 
+
+2016-12-04 (08)
+ -  only send email when users update their records, and send noreply user - not admin user 
+
+2016-11-02 (07)
+ -  disable text_export for action fields 
+
+2016-09-28 (06)
+ -  do not send email if $CFG->noemilever is TRUE 
+
+2016-08-24 (05)
+ -  improvement commenting regarding Asian PDF fonts 
+
+2016-08-24 (05)
+ -  standardize 'die;' to 'die();' 
+
+2016-08-24 (04)
+ -  add preliminary version of settings.php, even though it is not accessible via standard Moodle UI 
+
+2016-08-24 (04)
+ -  set font when creating PDF files, and don't send email to guest users 
+
+2016-04-25 (03)
+ -  fully implement 'confirm' action, including PDF attachment 
+
+2016-04-24 (02)
+ -  use datafield_admin static methods to format fields in mod.html 
+
+2016-04-24 (02)
+ -  use datafield_admin static methods to format fields in mod.html 
+
+2016-04-17 (01)
+ -  preliminary framework for action types 
+
+2016-04-01 (00)
+ -  preliminary framework for action types 
+
+2016-04-01 (00)
+ -  populate SVN repository 

@@ -33,5 +33,5 @@ $plugin->dependencies = array(
     'datafield_template' => ANY_VERSION
 );
 $plugin->requires  = 2012062500; // Moodle 2.3
-$plugin->version   = 2019022522;
-$plugin->release   = '2019-02-25 (22)';
+$plugin->version   = 2019101223;
+$plugin->release   = '2019-10-12 (23)';
