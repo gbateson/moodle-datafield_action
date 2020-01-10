@@ -476,6 +476,10 @@ class data_field_action extends data_field_base {
             }
         }
 
+        // Convert single byte yen-sign to double-byte equivalent,
+        // because some fonts display the single-byte yen-sign as a backslash.
+        $html = str_replace("\u{00A5}", '&#xFFE5;', $html);
+
         $doc->AddPage();
         $doc->writeHTML($html);
         $doc->Output($filepath, $destination);
