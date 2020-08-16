@@ -2,6 +2,9 @@
 Change log for datafield_action
 ========================================
 
+2020-08-16 (26)
+ - use <DL> + bootstrap classes in mod.html templates
+
 2020-01-10 (25)
  - replace single-byte yen signs with their tw-byte equivalent in content of a PDF files
 

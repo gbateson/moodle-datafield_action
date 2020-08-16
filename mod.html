@@ -23,51 +23,52 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      Moodle 2.3
  */
- ?>
-<table width="100%" cellpadding="5" class="datafield_action"><?php
 
-    data_field_admin::format_core_field($this->field, 'name');
-    data_field_admin::format_core_field($this->field, 'description');
+data_field_admin::set_bootstrap(true);
+data_field_admin::mod_html_start($this->field);
 
-    $use_field = ($this->field->type=='action');
+data_field_admin::format_core_field($this->field, 'name');
+data_field_admin::format_core_field($this->field, 'description');
+
+$use_field = ($this->field->type=='action');
+if ($use_field) {
+    $param = $this->typeparam;
+    $value = $this->field->$param;
+} else {
+    $param = $this->subfield->typeparam;
+    $value = $this->subfield->field->$param;
+}
+$name  = 'actiontype';
+$label = get_string($name, 'datafield_action');
+$options = data_field_action::get_action_types();
+$text  = data_field_admin::format_select_field($param, $options, $value, $name);
+echo data_field_admin::format_table_row($name, $label, $text);
+
+if ($use_field) {
+    $param = $this->timeparam;
+    $value = $this->field->$param;
+} else {
+    // subfield of "admin" field
+    $param = $this->subfield->timeparam;
+    $value = $this->subfield->field->$param;
+}
+$name  = 'actiontime';
+$label = get_string($name, 'datafield_action');
+$options = data_field_action::get_action_times();
+$text  = data_field_admin::format_select_field($param, $options, $value, $name);
+echo data_field_admin::format_table_row($name, $label, $text);
+
+$name  = 'argument';
+for ($i=1; $i<=3; $i++) {
+    $param = 'param'.($i + 2);
     if ($use_field) {
-        $param = $this->typeparam;
         $value = $this->field->$param;
     } else {
-        $param = $this->subfield->typeparam;
         $value = $this->subfield->field->$param;
     }
-    $name  = 'actiontype';
-    $label = get_string($name, 'datafield_action');
-    $options = data_field_action::get_action_types();
-    $text  = data_field_admin::format_select_field($param, $options, $value, $name);
+    $label = get_string($name, 'datafield_action', $i);
+    $text = data_field_admin::format_textarea_field($param, $value, $name, 2);
     echo data_field_admin::format_table_row($name, $label, $text);
+}
 
-    if ($use_field) {
-        $param = $this->timeparam;
-        $value = $this->field->$param;
-    } else {
-        // subfield of "admin" field
-        $param = $this->subfield->timeparam;
-        $value = $this->subfield->field->$param;
-    }
-    $name  = 'actiontime';
-    $label = get_string($name, 'datafield_action');
-    $options = data_field_action::get_action_times();
-    $text  = data_field_admin::format_select_field($param, $options, $value, $name);
-    echo data_field_admin::format_table_row($name, $label, $text);
-
-    $name  = 'argument';
-    for ($i=1; $i<=3; $i++) {
-        $param = 'param'.($i + 2);
-        if ($use_field) {
-            $value = $this->field->$param;
-        } else {
-            $value = $this->subfield->field->$param;
-        }
-        $label = get_string($name, 'datafield_action', $i);
-        $text = data_field_admin::format_textarea_field($param, $value, $name, 2);
-        echo data_field_admin::format_table_row($name, $label, $text);
-    }
-
-?></table>
+data_field_admin::mod_html_end();
