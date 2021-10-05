@@ -2,6 +2,9 @@
 Change log for datafield_action
 ========================================
 
+2021-10-05 (27)
+ - don't display PayPal buttons if user has already paid
+
 2020-08-16 (26)
  - use <DL> + bootstrap classes in mod.html templates
 

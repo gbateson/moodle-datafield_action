@@ -73,16 +73,14 @@ class data_field_action_paypal extends data_field_action_base {
             return '';
         }
 
-        $content = array('fieldid' => $field->id,
-                         'recordid' => $recordid);
-        $content = $DB->get_field('data_content', 'content', $content);
-
         // don't display buttons if user has already paid
-        if ($content) {
+        $params = array('fieldid' => $field->id,
+                        'recordid' => $recordid);
+        if ($DB->get_field('data_content', 'content', $params)) {
             return 'Already paid';
         }
 
-        // perhaps we cojld store this in param2
+        // perhaps we could store this in param2
         // and use the field->description as the button title?
         $paypallang = 'JP';
 
