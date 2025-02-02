@@ -36,7 +36,7 @@ class data_field_action_unapprove extends data_field_action_base {
     /**
      * override the automatic approval of records created by teachers and admins
      */
-    public function execute($recordid=0) {
+    public function execute($recordid=0, $value='') {
         if ($recordid) {
             $DB->set_field('data_records', 'approved', 0, array('id' => $recordid));
         }

@@ -37,7 +37,7 @@ class data_field_action_schedule extends data_field_action_base {
      * If a teacher/admin is updating the current record,
      * then update the conference schedule, if there is one
      */
-    public function execute($recordid=0) {
+    public function execute($recordid=0, $value='') {
         global $CFG, $DB;
 
         $filepath = $CFG->dirroot.'/blocks/maj_submissions/block_maj_submissions.php';

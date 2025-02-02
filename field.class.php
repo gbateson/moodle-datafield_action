@@ -184,7 +184,7 @@ class data_field_action extends data_field_base {
                            self::TIME_ADDEDIT,
                            self::TIME_ADDEDITDELETE);
         }
-        $this->execute_action($times, $recordid);
+        $this->execute_action($times, $recordid, $value);
         return true;
     }
 
@@ -277,7 +277,36 @@ class data_field_action extends data_field_base {
      * @since Moodle 3.3
      */
     public function get_config_for_external() {
-    	return data_field_admin::get_field_params($this->field);
+    	return data_field_admin::get_field_params_for_external($this->field);
+    }
+
+    /**
+     * Return the params required by "templates/xxx.mustache" template.
+     *
+     * @return array the list of config parameters
+     * @since Moodle 3.3
+     */
+    protected function get_field_params(): array {
+        global $DB, $CFG;
+
+        // Fetch the name, description and params1-10.
+        $data = parent::get_field_params();
+
+        // Convert action types to array suitable for mustache template.
+        $name = 'actiontypes';
+        $data[$name] = self::get_action_types();
+        $data[$name] = data_field_admin::mustache_select_options(
+            $data['param1'], $data[$name]
+        );
+
+        // Convert action times to array suitable for mustache template.
+        $name = 'actiontimes';
+        $data[$name] = self::get_action_times();
+        $data[$name] = data_field_admin::mustache_select_options(
+            $data['param2'], $data[$name]
+        );
+
+        return $data;
     }
 
     ///////////////////////////////////////////
@@ -287,10 +316,10 @@ class data_field_action extends data_field_base {
     /**
      * execute action if this is one of the required times
      */
-    public function execute_action($times, $recordid=0) {
+    public function execute_action($times, $recordid=0, $value='') {
         $param = $this->timeparam;
         if (in_array($this->field->$param, $times)) {
-            return $this->actionfield->execute($recordid);
+            return $this->actionfield->execute($recordid, $value);
         } else {
             return '';
         }

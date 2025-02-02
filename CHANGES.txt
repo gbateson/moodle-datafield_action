@@ -2,6 +2,12 @@
 Change log for datafield_action
 ========================================
 
+2025-02-02 (30)
+ - add message to CHANGES.txt
+
+2025-02-02 (30)
+ - use mustache templates in Moodle >= 4.4
+
 2021-10-05 (27)
  - don't display PayPal buttons if user has already paid
 

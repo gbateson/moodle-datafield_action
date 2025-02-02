@@ -25,6 +25,14 @@
  * @since     Moodle 2.0
  */
 
+/**
+ * The font-awesome icon for this plugin is not defined by
+ * standard Moodle themes (Boost, Classic) so we add it here.
+ */
+.fa-external-link:before {
+    content: "\f08e";
+}
+
 .path-mod-data-field .datafield_action tr.argument td.c0 {
     padding-top: 10px;
     vertical-align: top;

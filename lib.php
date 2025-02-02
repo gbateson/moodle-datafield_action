@@ -35,3 +35,11 @@ require_once($CFG->dirroot.'/mod/data/field/admin/lib.php');
 function datafield_action_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, $options=array()) {
     return datafield_admin_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, $options, 'action');
 }
+
+/**
+ * Get icon mapping for font-awesome.
+ */
+function datafield_action_get_fontawesome_icon_map() {
+    // The hex code for "external-link" is "f08e".
+    return ['mod_data:field/action' => 'fa-solid fa-external-link'];
+}

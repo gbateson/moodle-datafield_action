@@ -54,7 +54,7 @@ class data_field_action_paypal extends data_field_action_base {
     /**
      * generate HTML code for PayPal button
      */
-    public function execute($recordid=0) {
+    public function execute($recordid=0, $value='') {
         global $CFG, $COURSE, $DB, $USER;
 
         $context = $this->datafield->context;

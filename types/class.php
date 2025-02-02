@@ -43,7 +43,7 @@ class data_field_action_base {
     /**
      * the function that executes this action
      */
-    public function execute($recordid=0) {
+    public function execute($recordid=0, $value='') {
         return '';
     }
 }

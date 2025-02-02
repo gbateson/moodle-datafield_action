@@ -40,7 +40,7 @@ class data_field_action_confirm extends data_field_action_base {
     public $messageparam = 'param4'; // argument 2
     public $pdfparam     = 'param5'; // argument 3
 
-    public function execute($recordid=0) {
+    public function execute($recordid=0, $value='') {
         global $CFG, $DB, $USER;
 
         $context = $this->datafield->context;
