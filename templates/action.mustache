@@ -1,0 +1,62 @@
+<fieldset>
+    {{> datafield_admin/basicfields }}
+    {{> mod_data/fields/requiredfield }}
+
+    <!-- Template for actiontype field -->
+    <div class="form-group row fitem">
+        <div class="col-md-3">
+            <label for="param1" class="mb-0">{{#str}}actiontype, datafield_action{{/str}}</label>
+        </div>
+        <div class="col-md-9 form-inline align-items-start felement">
+            <select id="param1" class="select custom-select form-control" name="param1">
+                {{#actiontypes}}
+                    <option value="{{value}}" {{#selected}}selected{{/selected}}>{{text}}</option>
+                {{/actiontypes}}
+            </select>
+        </div>
+    </div>
+
+    <!-- Template for actiontime field -->
+    <div class="form-group row fitem">
+        <div class="col-md-3">
+            <label for="param2" class="mb-0">{{#str}}actiontime, datafield_action{{/str}}</label>
+        </div>
+        <div class="col-md-9 form-inline align-items-start felement">
+            <select id="param2" class="select custom-select form-control" name="param2">
+                {{#actiontimes}}
+                    <option value="{{value}}" {{#selected}}selected{{/selected}}>{{text}}</option>
+                {{/actiontimes}}
+            </select>
+        </div>
+    </div>
+
+    <!-- Template for argument1 field -->
+    <div class="form-group row fitem">
+        <div class="col-md-3">
+            <label for="param3" class="mb-0">{{#str}}argument, datafield_action, 1{{/str}}</label>
+        </div>
+        <div class="col-md-9 form-inline align-items-start felement">
+            <textarea id="id_param3" name="param3" class="widetext" rows="2">{{param3}}</textarea>
+        </div>
+    </div>
+
+    <!-- Template for argument2 field -->
+    <div class="form-group row fitem">
+        <div class="col-md-3">
+            <label for="param4" class="mb-0">{{#str}}argument, datafield_action, 2{{/str}}</label>
+        </div>
+        <div class="col-md-9 form-inline align-items-start felement">
+            <textarea id="id_param4" name="param4" class="widetext" rows="2">{{param4}}</textarea>
+        </div>
+    </div>
+
+    <!-- Template for argument3 field -->
+    <div class="form-group row fitem">
+        <div class="col-md-3">
+            <label for="param5" class="mb-0">{{#str}}argument, datafield_action, 3{{/str}}</label>
+        </div>
+        <div class="col-md-9 form-inline align-items-start felement">
+            <textarea id="id_param5" name="param5" class="widetext" rows="2">{{param5}}</textarea>
+        </div>
+    </div>
+</fieldset>
