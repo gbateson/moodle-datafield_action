@@ -281,16 +281,23 @@ class data_field_action extends data_field_base {
     }
 
     /**
-     * Return the params required by "templates/xxx.mustache" template.
+     * Retrieves and prepares configuration parameters for the Mustache template.
      *
-     * @return array the list of config parameters
-     * @since Moodle 3.3
+     * This method extends the parent method to fetch default field parameters
+     * and enhances them with additional settings required by the Mustache template.
+     * It processes action types and action times, and adds help icons for fields
+     * where language help strings are available.
+     *
+     * @return array The list of prepared configuration parameters for the Mustache template.
+     * @since Moodle 4.4
      */
     protected function get_field_params(): array {
-        global $DB, $CFG;
 
-        // Fetch the name, description and params1-10.
+        // Fetch the name, description and params.
         $data = parent::get_field_params();
+
+        // Add labels and help icons for the mustache template.
+        $data = data_field_admin::add_labels_and_help($data, $this);
 
         // Convert action types to array suitable for mustache template.
         $name = 'actiontypes';
@@ -307,6 +314,20 @@ class data_field_action extends data_field_base {
         );
 
         return $data;
+    }
+
+    /**
+     * Map param names to a label string and component.
+     * Used by datafield_admin::add_labels_and_help($data, $field).
+     */
+    public static function get_string_names() {
+        return [
+            'param1' => ['actiontype', 'datafield_action'],
+            'param2' => ['actiontime', 'datafield_action'],
+            'param3' => ['argument', 'datafield_action', 1],
+            'param4' => ['argument', 'datafield_action', 2],
+            'param5' => ['argument', 'datafield_action', 3],
+        ];
     }
 
     ///////////////////////////////////////////
