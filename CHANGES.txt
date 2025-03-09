@@ -2,6 +2,9 @@
 Change log for datafield_action
 ========================================
 
+2025-03-09 (34)
+ - implement AI-generation of text feedback from OpenAI
+
 2025-02-04 (33)
  - utilize central function to add labels and help icons in mustache template for this field type
 
