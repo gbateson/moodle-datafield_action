@@ -72,15 +72,19 @@ class data_field_action_generate extends data_field_action_base {
             $field, $this->targetfieldsparam
         );
 
-        // Sanity check on source/target fieldnames.
-        if (empty($sourcefieldnames) || empty($targetfieldnames)) {
-            return;
-        }
-
         // Get ids and names of all source/target fields.
         $fields = $this->get_fields($data, $sourcefieldnames, $targetfieldnames);
         if (empty($fields)) {
             return; // Shouldn't happen !!
+        }
+
+        // Clean the source/target arrays.
+        $sourcefieldnames = array_intersect($sourcefieldnames, $fields);
+        $targetfieldnames = array_intersect($targetfieldnames, $fields);
+
+        // Sanity check on source/target fieldnames.
+        if (empty($sourcefieldnames) || empty($targetfieldnames)) {
+            return;
         }
 
         // Get the new values for all the source/target fields.
@@ -102,36 +106,62 @@ class data_field_action_generate extends data_field_action_base {
             } else {
                 $update = ($time == data_field_action::TIME_EDIT);
             }
-
             if ($update) {
                 // Check the sourcefields and update
                 // any whose content value has changed.
-                foreach ($sourcefieldnames as $fieldname) {
-                    $fieldid = array_search($fieldname, $fields);
-                    if ($fieldid === false) {
+                foreach ($sourcefieldnames as $sourcename) {
+                    $sourcefieldid = array_search($sourcename, $fields);
+                    if ($sourcefieldid === false) {
                         continue; // Invalid field name.
                     }
-                    $oldvalue = ($oldvalues[$fieldid] ?? '');
-                    $newvalue = ($newvalues[$fieldid] ?? '');
+                    $sourcefield = data_get_field_from_id($sourcefieldid, $data);
+                    if ($sourcefield === false) {
+                        continue; // Invalid fieldid - shouldn't happen !!.
+                    }
+                    $oldvalue = ($oldvalues[$sourcefieldid] ?? '');
+                    $newvalue = ($newvalues[$sourcefieldid] ?? '');
                     if (strcmp($oldvalue, $newvalue) === 0) {
                         continue; // Value has not changed.
                     }
-                    foreach ($targetfieldnames as $name) {
-                        $fieldid = array_search($name, $fields);
-                        if ($fieldid === false) {
+                    // ToDo: For "file" and "picture", we should
+                    // fetch the file object and check "timemodified".
+                    foreach ($targetfieldnames as $targetname) {
+                        $targetfieldid = array_search($targetname, $fields);
+                        if ($targetfieldid === false) {
                             continue; // Invalid field name.
                         }
-                        $targetfield = data_get_field_from_id($fieldid, $data);
+                        $targetfield = data_get_field_from_id($targetfieldid, $data);
                         if ($targetfield === false) {
                             continue; // Invalid fieldid - shouldn't happen !!.
                         }
-                        // Update the target field, using
-                        // the new value from the source field.
+                        // Update the target field,
+                        // using the new value from the source field.
                         // The "extra2" value is stored in "param4" property.
                         if ($targetfield->field->type == 'report') {
                             $newvalue = $targetfield->display_field($recordid, 'extra2');
+                            $newvalue = trim($newvalue, ' `');
+                            $newvalue = preg_replace('/json\s*(\{.*\})/s', '$1', $newvalue);
+                            if ($targetfield->is_json($newvalue)) {
+                                $newvalue = json_decode($newvalue);
+                            }
+                        } else if (array_key_exists($targetfieldid, $newvalues)) {
+                            $newvalue = $newvalues[$targetfieldid];
+                            unset($newvalues[$targetfieldid]);
                         }
-                        $targetfield->update_content($recordid, $newvalue);
+                        if (is_string($newvalue) || is_scalar($newvalue)) {
+                            $targetfield->update_content($recordid, $newvalue);
+                        } else if (is_array($newvalue) || is_object($newvalue)) {
+
+                            foreach ($newvalue as $name => $value) {
+                                if ($name == $targetname) {
+                                    $targetfield->update_content($recordid, $value);
+                                } else if (in_array($name, $targetfieldnames)) {
+                                    // Insert this value into the $newvalues so that
+                                    // it can be used when the field is updated.
+                                    $newvalues[array_search($name, $fields)] = $value;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -173,6 +203,15 @@ class data_field_action_generate extends data_field_action_base {
     }
 
     /**
+     * This method doesn't seem to be effective.
+     */
+    protected function update_form_value($fieldid, $value) {
+        global $datarecord;
+        $formfield = 'field_'.$fieldid;
+        $datarecord->$formfield = $value;
+    }
+
+    /**
      * Retrieves a list of field names based on a specified parameter.
      *
      * This method fetches the value of the given parameter from the field object,
@@ -206,11 +245,35 @@ class data_field_action_generate extends data_field_action_base {
         return $DB->get_records_select_menu('data_fields', $select, $params, '', 'id,name');
     }
 
+    protected function is_file($fieldid) {
+        return array_key_exists('field_'.$fieldid.'_file', $_POST);
+    }
+
     protected function get_newvalues($recordid, $fields) {
+        global $USER;
+
+        // Cache the user context.
+        $usercontextid = context_user::instance($USER->id)->id;
+
+        // Fetch the file storage manager.
+        $fs = get_file_storage();
+
         $values = [];
         foreach ($fields as $fieldid => $fieldname) {
-            $param = 'field_'.$fieldid;
-            $values[$fieldid] = optional_param($param, '', PARAM_TEXT);
+            if ($this->is_file($fieldid)) {
+                $param = 'field_'.$fieldid.'_file';
+                $value = '';
+                if ($itemid = optional_param($param, '', PARAM_TEXT)) {
+                    $files = $fs->get_directory_files($usercontextid, 'user', 'draft', $itemid, '/');
+                    if ($file = reset($files)) {
+                        $value = $file->get_timemodified().$file->get_filepath().$file->get_filename();
+                    }
+                }
+            } else {
+                $param = 'field_'.$fieldid;
+                $value = optional_param($param, '', PARAM_TEXT);
+            }
+            $values[$fieldid] = $value;
         }
         return $values;
     }
@@ -222,11 +285,29 @@ class data_field_action_generate extends data_field_action_base {
             list($select, $params) = $DB->get_in_or_equal(array_keys($fields));
             $select = "recordid = ? AND fieldid $select";
             $params = array_merge([$recordid], $params);
-            $values = $DB->get_records_select_menu(
-                'data_content', $select, $params, '', 'fieldid,content'
-            );
-            if (empty($values)) {
-                $values = []; // Shouldn't happen !!
+            $contents = $DB->get_records_select('data_content', $select, $params);
+            if (empty($contents)) {
+                $contents = []; // Shouldn't happen !!
+            }
+
+            // Fetch the file storage manager.
+            $fs = get_file_storage();
+
+            // Cache the context id.
+            $contextid = $this->datafield->context->id;
+
+            $values = [];
+            foreach ($contents as $contentid => $content) {
+                $fieldid = $content->fieldid;
+                $value = $content->content;
+                if ($this->is_file($fieldid)) {
+                    if ($file = $fs->get_file($contextid, 'mod_data', 'content', $content->id, '/', $value)) {
+                        $value = $file->get_timemodified().$file->get_filepath().$file->get_filename();
+                    } else {
+                        $value = '';
+                    }
+                }
+                $values[$fieldid] = $value;
             }
         }
         return $values;
