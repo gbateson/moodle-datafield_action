@@ -313,6 +313,9 @@ class data_field_action extends data_field_base {
             $data['param2'], $data[$name]
         );
 
+        // Javascript to fix the body id (and possibly  other stuff)
+        data_field_admin::require_js("/mod/data/field/admin/mod.html.js", true);
+
         return $data;
     }
 

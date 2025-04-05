@@ -2,6 +2,9 @@
 Change log for datafield_action
 ========================================
 
+2025-04-05 (37)
+ - add JS to expand/contract textarea height to match content
+
 2025-03-13 (36)
  - small correction when assign fields returned as a JSON object from AI-generated content
 

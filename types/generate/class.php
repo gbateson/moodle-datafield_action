@@ -35,8 +35,8 @@ require_once($CFG->dirroot.'/mod/data/field/action/types/class.php');
 class data_field_action_generate extends data_field_action_base {
 
     /** the params that holds the lists of fieldnames */
-    public $sourcefieldsparam = 'param3'; // argument 1
-    public $targetfieldsparam = 'param4'; // argument 2
+    public $sourcefieldsparam = 'param3'; // Argument 1
+    public $targetfieldsparam = 'param4'; // Argument 2
 
     /**
      * Executes the action to update target fields based on source fields.
@@ -165,6 +165,7 @@ class data_field_action_generate extends data_field_action_base {
                     }
                 }
             }
+
         } else {
             // Otherwise, we are not updating, so take an
             // action that is suitable for the action time.
