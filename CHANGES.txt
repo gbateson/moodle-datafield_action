@@ -2,6 +2,9 @@
 Change log for datafield_action
 ========================================
 
+2026-03-01 (39)
+ - remove AI-modified fields from incoming form data so that calcualted values are not overwritten by blanks from form
+
 2025-04-05 (37)
  - add JS to expand/contract textarea height to match content
 

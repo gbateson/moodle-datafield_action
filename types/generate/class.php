@@ -37,6 +37,7 @@ class data_field_action_generate extends data_field_action_base {
     /** the params that holds the lists of fieldnames */
     public $sourcefieldsparam = 'param3'; // Argument 1
     public $targetfieldsparam = 'param4'; // Argument 2
+    public $autofieldsparam = 'param5'; // Argument 3
 
     /**
      * Executes the action to update target fields based on source fields.
@@ -64,30 +65,38 @@ class data_field_action_generate extends data_field_action_base {
         // A change in the content of a source field will trigger
         // a call to the "update_content" method of the target field(s).
 
-        // Get the source/target fieldnames.
+        // Get the source/target/auto fieldnames.
         $sourcefieldnames = $this->get_fieldnames(
             $field, $this->sourcefieldsparam
         );
         $targetfieldnames = $this->get_fieldnames(
             $field, $this->targetfieldsparam
         );
+        $autofieldnames = $this->get_fieldnames(
+            $field, $this->autofieldsparam
+        );
 
         // Get ids and names of all source/target fields.
-        $fields = $this->get_fields($data, $sourcefieldnames, $targetfieldnames);
+        $fields = $this->get_fields($data, $sourcefieldnames, $targetfieldnames, $autofieldnames);
         if (empty($fields)) {
             return; // Shouldn't happen !!
         }
 
-        // Clean the source/target arrays.
+        // Clean the source/target/auto arrays.
         $sourcefieldnames = array_intersect($sourcefieldnames, $fields);
         $targetfieldnames = array_intersect($targetfieldnames, $fields);
+        $autofieldnames = array_intersect($autofieldnames, $fields);
+
+        if (count($autofieldnames)) {
+            $targetfieldnames = array_merge($targetfieldnames, $autofieldnames);
+        }
 
         // Sanity check on source/target fieldnames.
         if (empty($sourcefieldnames) || empty($targetfieldnames)) {
             return;
         }
 
-        // Get the new values for all the source/target fields.
+        // Get the new values for all the source/target/auto fields.
         $newvalues = $this->get_newvalues($recordid, $fields);
 
         // Get the old values for all the source/target fields.
@@ -134,27 +143,38 @@ class data_field_action_generate extends data_field_action_base {
                         if ($targetfield === false) {
                             continue; // Invalid fieldid - shouldn't happen !!.
                         }
-                        // Update the target field,
-                        // using the new value from the source field.
+                        // Update the target field, using the new value from the source field.
                         // The "extra2" value is stored in "param4" property.
                         if ($targetfield->field->type == 'report') {
                             $newvalue = $targetfield->display_field($recordid, 'extra2');
-                            $newvalue = trim($newvalue, ' `');
-                            $newvalue = preg_replace('/json\s*(\{.*\})/s', '$1', $newvalue);
-                            if ($targetfield->is_json($newvalue)) {
-                                $newvalue = json_decode($newvalue);
+                            if (is_scalar($newvalue)) {
+                                // A number or string (possibly JSON).
+                                $newvalue = trim($newvalue, ' `');
+                                $newvalue = preg_replace('/json\s*(\{.*\})/s', '$1', $newvalue);
+                                if ($targetfield->is_json($newvalue)) {
+                                    $newvalue = json_decode($newvalue);
+                                } else {
+                                    $newvalue = $this->str_to_array($newvalue, $targetfieldnames);
+                                }
+                            } else {
+                                // An array or object. Keys should be field names.
                             }
                         } else if (array_key_exists($targetfieldid, $newvalues)) {
                             $newvalue = $newvalues[$targetfieldid];
                             unset($newvalues[$targetfieldid]);
                         }
+
+                        // The name of the form field used to represent this target field.
+                        $targetformfield = "field_$targetfieldid";
+
                         if (is_string($newvalue) || is_scalar($newvalue)) {
                             $targetfield->update_content($recordid, $newvalue);
+                            unset($_POST[$targetformfield]); // Remove from form.
                         } else if (is_array($newvalue) || is_object($newvalue)) {
-
                             foreach ($newvalue as $name => $value) {
                                 if ($name == $targetname) {
                                     $targetfield->update_content($recordid, $value);
+                                    unset($_POST[$targetformfield]); // Remove from form.
                                 } else if (in_array($name, $targetfieldnames)) {
                                     // Insert this value into the $newvalues so that
                                     // it can be used when the field is updated.
@@ -237,9 +257,9 @@ class data_field_action_generate extends data_field_action_base {
         return []; // Shouldn't happen!
     }
 
-    protected function get_fields($data, $sourcefieldnames, $targetfieldnames) {
+    protected function get_fields($data, $sourcefieldnames, $targetfieldnames, $autofieldnames) {
         global $DB;
-        $fieldnames = array_merge($sourcefieldnames, $targetfieldnames);
+        $fieldnames = array_merge($sourcefieldnames, $targetfieldnames, $autofieldnames);
         list($select, $params) = $DB->get_in_or_equal($fieldnames);
         $select = "dataid = ? AND name $select";
         $params = array_merge([$data->id], $params);
@@ -312,5 +332,38 @@ class data_field_action_generate extends data_field_action_base {
             }
         }
         return $values;
+    }
+
+    protected function str_to_array($text, $keys) {
+        $array = [];
+        $currentkey = null;
+    
+        $linematch = '/^([A-Za-z0-9_-]+):\s*(.*)$/';
+        $lines = preg_split('/\R+/', $text);
+        foreach ($lines as $line) {
+    
+            // Match a key line (e.g. ai-feedback: or ai-grade: 25)
+            if (preg_match($linematch, $line, $match)) {
+                $key = trim($match[1]);
+                $value = trim($match[2]);
+                if (in_array($key, $keys)) {
+                    if (is_numeric($value)) {
+                        $value = (int)$value;
+                    }
+                    $array[$key] = $value;
+                    $currentkey = $key;
+                } else {
+                    $currentkey = null;
+                }
+            } else if ($currentkey) {
+                if ($line = trim($line)) {
+                    if ($array[$currentkey]) {
+                        $array[$currentkey] .= "\n";
+                    }
+                    $array[$currentkey] .= $line;
+                }
+            }
+        }
+        return $array;
     }
 }
